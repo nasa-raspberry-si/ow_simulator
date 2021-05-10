@@ -1,6 +1,10 @@
 # Git Polices should be followed in this repository
 
 ## Git branching policy
+<p align="center">
+<img src="git-policy.png" alt="Git Branching Diagram" width="400">
+</p>
+
 The policy described here is inspired by the GitFlow policy that can be
 found [here](https://datasift.github.io/gitflow/IntroducingGitFlow.html).
 A summary of the process is included in the image above. There are three
