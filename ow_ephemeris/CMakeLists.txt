@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(ow_ephemeris)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
-
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -63,8 +60,8 @@ download_file(
   9dcee11a333945310db8b76eb695fc9c
 )
 download_file(
-  https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/satellites/sat427.bsp
-  f09fb34fc9ec04af4971e4ea097628e5
+  https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/satellites/sat441.bsp
+  0d081d7e58504450cf2aa0b151a36b41
 )
 
 ################################################

@@ -1,5 +1,5 @@
 These instructions cover system requirements, and the installation of
-prerequisite software (PLEXIL, ROS), for OceanWATERS.  Familiarity with
+prerequisite software (ROS, PLEXIL, GSAP), for OceanWATERS.  Familiarity with
 Unix/Linux and the Bash shell command line is assumed.
 
 System Requirements
@@ -20,49 +20,57 @@ The following minimum software set is required to build and run OceanWATERS
 (version numbers and identifiers are listed where specific versions are
 required):
 
--   The Ubuntu 18.04 (Bionic) Linux operating system, with:
+-   The Ubuntu 20.04 LTS (Focal Fossa) Linux operating system, with:
     -   The Bash command shell
     -   The git version control system
--   The Robot Operating System (ROS), Melodic Morenia distribution, with:
+-   [ROS Noetic Ninjemys](http://wiki.ros.org/noetic) distribution, with:
     -   The Catkin build system
--   Gazebo 9.13
+-   Gazebo 11.9+
 - PLEXIL plan language and executive (http://plexil.sourceforge.net).
+- Generic Software Architecture for Prognostics (GSAP) v2.0
 
-Note on virtual machines (e.g. VMWare, Parallels, VirtualBox, Windows Subsystem
-for Linux): These have all worked to some degree, but tend to not support the
-Gazebo simulator very well or at all. They are not recommended for OceanWATERS.
+IMPORTANT NOTE: Virtual machines (in particular VMWare, Parallels, VirtualBox,
+Windows Subsystem for Linux v2) have all worked to some degree, but tend to not
+support the Gazebo simulator very well or at all. *Virtual machines are not
+recommended for OceanWATERS.*
 
 
 Prerequisites
 -------------
 
-OceanWATERS requires PLEXIL, ROS, and Gazebo.
+OceanWATERS requires PLEXIL, GSAP, ROS, and Gazebo.
 In the following instructions, we assume the default command shell is Bash.
 
 ### PLEXIL
 
-The OceanWATERS distribution includes an autonomy module (`ow_autonomy`) that at present
-depends on PLEXIL, an open-source plan authoring language and autonomy executive (see
-[*http://plexil.sourceforge.net](http://plexil.sourceforge.net)).  PLEXIL must be installed
-*prior* to building the `ow_autonomy` package.
+The OceanWATERS distribution includes an autonomy module (`ow_autonomy`) that at
+present uses PLEXIL, an open-source plan authoring language and autonomy
+executive (see [*http://plexil.sourceforge.net](http://plexil.sourceforge.net)).
+PLEXIL must be installed and built *prior* to building the `ow_plexil`
+package.
 
-PLEXIL is hosted on sourceforge.net, which provides both source code and binary
-distributions. PLEXIL should be built from source code, as the binary
-distributions on sourceforge.net are not always kept up to date.
+Note that both source code and binary distributions of PLEXIL are available at
+the Sourceforge link above. However, only the source code distribution should be
+used with OceanWATERS, because the binaries are out of date or might not be
+compatible.
 
-* Check out the source code:
+
+* Check out the `releases/plexil-4` branch of the source code:
 ```
-git clone https://git.code.sf.net/p/plexil/git plexil
+git clone --branch releases/plexil-4 https://git.code.sf.net/p/plexil/git plexil
 ```
 
-The default git branch of PLEXIL is `releases/plexil-4`, which is maintained as
-a stable version of PLEXIL compatible with OceanWATERS and suitable for general
-use.
+NOTE: the default git branch of PLEXIL is in fact `releases/plexil-4` at the
+time of this writing.  OceanWATERS has been tested with a version of this branch
+tagged `OceanWATERS-v9.0`.  Its git commit hash begins with `77bbf96`.  Newer
+versions of this branch should work with the newest version of the `master`
+branches of OceanWATERS.
 
 * Install any of the following build prerequisites needed. If you're not sure
-which are missing, try the build, see where it breaks, and install new packages
-as you go. All of the following may be installed with: `sudo apt install
-<package-name>`
+which, if any, are missing on your system, try the build, and if there are
+errors that indicate missing software packages, install them and try again.  All
+packages needed can be installed with: `sudo apt install <package-name>`.
+Here's one command to get them all.
 
 ```
 sudo apt install make \
@@ -92,7 +100,7 @@ source $PLEXIL_HOME/scripts/plexil-setup.sh
 
 NOTE: for convenience, you may wish to add the previous two commands to your
 shell initialization file (e.g. `.profile`), since they are needed every time
-you use PLEXIL or the `ow_autonomy` package.
+you use PLEXIL or the `ow_plexil` package.
 
 * Configure PLEXIL for the build:
 ```
@@ -112,32 +120,82 @@ make universalExec plexil-compiler checkpoint
 OceanWATERS.  Additional build information is available
 [here](http://plexil.sourceforge.net/wiki/index.php/Installation).
 
-* Also note that the latest version of this branch tested with OceanWATERS is tagged `OceanWATERS-v7.1`.  
+* Rebuiding PLEXIL.
 
+At a later date, if you update (e.g. `git pull`) your PLEXIL installation, it is
+safest to rebuild it from scratch:
+```
+cd $PLEXIL_HOME
+make squeaky-clean
+make universalExec plexil-compiler checkpoint
+```
+
+### GSAP
+
+The OceanWATERS distribution includes a power system module (`ow_power_system`)
+that at present depends on GSAP, an open-source battery prognostics
+executive. GSAP must be installed *prior* to building the `ow_power_system`
+package.
+
+* Check out the source code:
+```
+git clone -b v1.0-OW https://github.com/nasa/GSAP.git gsap
+```
+
+This checks out the git _tag_ `v1.0-OW` of GSAP's `master` branch, which is a
+tested version of GSAP for use with OceanWATERS.  Note that checking out a
+specific tag leaves your local repository in a "detached HEAD" state; this is of
+no concern.
+
+* Define the `GSAP_HOME` environment variable as the location of your GSAP
+  installation, e.g.
+
+```
+export GSAP_HOME=/home/<username>/gsap
+```
+
+NOTE: for convenience, you may wish to add the previous command to your shell
+initialization file (e.g. `.profile` or `.bashrc`), since they are needed every
+time.
+
+* Build GSAP.
+```
+cd $GSAP_HOME
+mkdir build
+cd build
+cmake ..
+make
+```
+
+NOTE: Configuration files can be used to tune the prognostics algorithm and/or
+adjust the prognostics model used to perform calculations.  An example
+configuration file can be found at: ``` ow_power_system/config/example.cfg ```
+Additional information about mapping configuration files and modifying their
+contents can be found [here](https://github.com/nasa/GSAP/wiki/Getting-Started).
+
+* If you have problems, see additional build information
+[here](https://github.com/nasa/GSAP/wiki).
 
 ### ROS
 
-Installation of OceanWATERS requires prior installation of ROS Melodic. ROS
+Installation of OceanWATERS requires prior installation of ROS Noetic. ROS
 binary downloads for Ubuntu Linux are available at
 [http://wiki.ros.org/ROS/Installation](http://wiki.ros.org/ROS/Installation),
 and instructions for installing ROS are available at
-[http://wiki.ros.org/melodic/Installation/Ubuntu](http://wiki.ros.org/melodic/Installation/Ubuntu).
+[http://wiki.ros.org/noetic/Installation/Ubuntu](http://wiki.ros.org/noetic/Installation/Ubuntu).
 
-* Install ROS (Melodic version) by following
-[these instructions](http://wiki.ros.org/melodic/Installation/Ubuntu). Select the
-ros-melodic-desktop-full package when you get to that step.
+* Install ROS (Noetic version) by following
+[these instructions](http://wiki.ros.org/noetic/Installation/Ubuntu). Select the
+ros-noetic-desktop-full package when you get to that step.
 
-By default, ROS is installed in `/opt/ros/release`. In the remainder of this document,
-we assume that ROS is installed in `/opt/ros/melodic`.
+In the remainder of this document, we assume that ROS has been installed under `/opt/ros/noetic`.
 
 ### Gazebo
 
-* Install Gazebo 9.13+. ROS melodic ships with Gazebo 9.0 which does not satisfy
-OceanWATERS requirements. To get the latest stable version of Gazebo available
-to ROS melodic follow these steps:
+* Install Gazebo 11.9+.
 
   * First run `gazebo --version` and check the version that is currently installed,
-if you have 9.13 or higher installed then you may skip this Gazebo upgrade.
+if you have 11.9 or higher installed then you may skip this Gazebo upgrade.
 
   * Add OSRF gazebo repositories to your linux enviroment:
 ```
@@ -150,38 +208,56 @@ wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 sudo apt-get update
 sudo apt-get upgrade
 ```
-  * Run `gazebo --version` and verify that you have a version of 9.13 or higher
+  * Run `gazebo --version` and verify that you have a version of 11.9 or higher.
+
+  * If you may be using Gazebo/OceanWATERS with a VPN (Virtual Private
+    Network) running, it is highly recommended you add the following
+    line to your shell initialization file (e.g. .bashrc).  An
+    explanation of the issue can be found in the [troubleshooting
+    guide](https://github.com/nasa/ow_simulator/wiki/Troubleshooting#ignition-transport-failure-on-vpn).
+
+```
+export IGN_IP=127.0.0.1
+```
+
+
 
 ### Additional Packages
 
-* In addition to the above, OceanWATERS requires the following list of packages:
+* In addition to the above, OceanWATERS requires packages listed in the
+  following installation command.
+
 ```
 sudo apt install git \
-                 python-wstool \
-                 python-catkin-tools \
-                 ros-melodic-tf2-ros \
-                 ros-melodic-robot-state-publisher \
-                 ros-melodic-joint-state-publisher \
-                 ros-melodic-joint-state-controller \
-                 ros-melodic-effort-controllers \
-                 ros-melodic-joint-trajectory-controller \
-                 ros-melodic-dynamic-reconfigure \
-                 ros-melodic-nodelet \
-                 ros-melodic-nodelet-topic-tools \
-                 ros-melodic-camera-info-manager \
-                 ros-melodic-tf2-geometry-msgs \
-                 ros-melodic-gazebo-ros-control \
-                 ros-melodic-xacro ros-melodic-rviz-visual-tools \
-                 ros-melodic-rqt-plot ros-melodic-rqt-rviz \
-                 ros-melodic-rqt-image-view \
-                 ros-melodic-rqt-common-plugins \
-                 ros-melodic-gazebo-plugins \
-                 ros-melodic-moveit \
-                 ros-melodic-moveit-ros-visualization \
-                 ros-melodic-geometry-msgs \
-                 ros-melodic-cmake-modules \
-                 ros-melodic-stereo-msgs \
-                 ros-melodic-stereo-image-proc \
+                 python3-wstool \
+                 python3-catkin-tools \
+                 ros-noetic-tf2-ros \
+                 ros-noetic-robot-state-publisher \
+                 ros-noetic-joint-state-publisher \
+                 ros-noetic-joint-state-controller \
+                 ros-noetic-effort-controllers \
+                 ros-noetic-joint-trajectory-controller \
+                 ros-noetic-dynamic-reconfigure \
+                 ros-noetic-nodelet \
+                 ros-noetic-nodelet-topic-tools \
+                 ros-noetic-camera-info-manager \
+                 ros-noetic-tf2-geometry-msgs \
+                 ros-noetic-gazebo-ros-control \
+                 ros-noetic-xacro \
+                 ros-noetic-rviz-visual-tools \
+                 ros-noetic-rqt-plot \
+                 ros-noetic-rqt-rviz \
+                 ros-noetic-rqt-image-view \
+                 ros-noetic-rqt-common-plugins \
+                 ros-noetic-gazebo-plugins \
+                 ros-noetic-moveit \
+                 ros-noetic-moveit-commander \
+                 ros-noetic-moveit-ros-visualization \
+                 ros-noetic-geometry-msgs \
+                 ros-noetic-cmake-modules \
+                 ros-noetic-stereo-msgs \
+                 ros-noetic-stereo-image-proc \
+                 ros-noetic-kdl-parser-py \
                  libgtk2.0-dev \
                  libglew-dev
 ```

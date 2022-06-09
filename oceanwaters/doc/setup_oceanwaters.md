@@ -28,11 +28,11 @@ To create a ROS workspace for OceanWATERS first use the setup.bash script
 provided in the ROS installation to set required ROS environment variables:
 
 ```
-source /opt/ros/melodic/setup.bash
+source /opt/ros/noetic/setup.bash
 ```
 
-Next create a workspace directory for OceanWATERS with a src subdirectory, and
-go to the src subdirectory:
+Next create a workspace directory for OceanWATERS with a `src` subdirectory, and
+go to the `src` subdirectory:
 
 ```
 mkdir -p oceanwaters_ws/src
@@ -60,6 +60,11 @@ Now use wstool to checkout/update the source code:
 ```
 wstool update
 ```
+
+NOTE: At this point you will have cloned the `master` branch of all OceanWATERS
+repositories. `master` branch is a stable snapshot of `noetic-devel` branch,
+both compatible with ROS Noetic on Ubuntu 20.04. 
+
 
 OceanWATERS Build
 -----------------

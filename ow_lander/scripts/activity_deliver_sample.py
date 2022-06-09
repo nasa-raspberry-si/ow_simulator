@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # The Notices and Disclaimers for Ocean Worlds Autonomy Testbed for Exploration
 # Research and Simulation can be found in README.md in the root directory of
@@ -9,6 +9,7 @@ from tf.transformations import euler_from_quaternion
 from moveit_msgs.msg import PositionConstraint
 from geometry_msgs.msg import Quaternion
 from shape_msgs.msg import SolidPrimitive
+import rospy
 
 
 def arg_parsing(req):
@@ -33,6 +34,7 @@ def deliver_sample(move_arm, args):
   :type move_arm: class 'moveit_commander.move_group.MoveGroupCommander'
   :type args: List[bool, float, float, float]
   """
+  default_planner_id = rospy.get_param("/move_group/arm/default_planner_config")
   move_arm.set_planner_id("RRTstar")
 
   x_delivery = args[1]
@@ -59,7 +61,7 @@ def deliver_sample(move_arm, args):
 
   move_arm.set_pose_target(goal_pose)
 
-  plan = move_arm.plan()
+  _, plan, _, _ = move_arm.plan()
 
   if len(plan.joint_trajectory.points) == 0:  # If no plan found, abort
     return False
@@ -94,7 +96,7 @@ def deliver_sample(move_arm, args):
 
   goal_pose.orientation = Quaternion(q[0], q[1], q[2], q[3])
   move_arm.set_pose_target(goal_pose)
-  plan = move_arm.plan()
+  _, plan, _, _ = move_arm.plan()
 
   if len(plan.joint_trajectory.points) == 0:  # If no plan found, abort
     return False
@@ -103,6 +105,6 @@ def deliver_sample(move_arm, args):
   move_arm.stop()
   move_arm.clear_pose_targets()
 
-  move_arm.set_planner_id("RRTconnect")
+  move_arm.set_planner_id(default_planner_id)
 
   return True

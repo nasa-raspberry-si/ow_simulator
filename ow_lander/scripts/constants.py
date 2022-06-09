@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # The Notices and Disclaimers for Ocean Worlds Autonomy Testbed for Exploration
 # Research and Simulation can be found in README.md in the root directory of
@@ -48,3 +48,7 @@ WRIST_SCOOP_PERP = 0.3
 # Radii in dig_circular
 R_PARALLEL_TRUE = 0.46
 R_PARALLEL_FALSE = 0.25
+
+# Radii in dig_circular for actions
+R_PARALLEL_TRUE_A = 0.46
+R_PARALLEL_FALSE_A = 0.10
